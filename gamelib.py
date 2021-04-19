@@ -102,6 +102,9 @@ class GameApp(ttk.Frame):
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height
         
+        self.key_pressed_handler = KeyboardHandler()
+        self.key_released_handler = KeyboardHandler()
+
         self.update_delay = update_delay
 
         self.grid(sticky="news")
@@ -161,7 +164,16 @@ class GameApp(ttk.Frame):
         pass
 
     def on_key_pressed(self, event):
-        pass
+        self.key_pressed_handler.handle(event)
 
     def on_key_released(self, event):
-        pass
+        self.key_released_handler.handle(event)
+
+
+class KeyboardHandler:
+    def __init__(self, successor=None):
+        self.successor = successor
+
+    def handle(self, event):
+        if self.successor:
+            self.successor.handle(event)

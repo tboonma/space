@@ -16,7 +16,7 @@ class SpaceGame(GameApp):
 
         # self.level = 1
         # self.level_text = Text(self, '', 100, 580)
-        self.level_text = StatusWithText(self, 100, 580, 'Level: %d', 1)
+        self.level = StatusWithText(self, 100, 580, 'Level: %d', 1)
         # self.update_level_text()
 
         self.score_wait = 0
@@ -29,7 +29,7 @@ class SpaceGame(GameApp):
         # self.bomb_power = BOMB_FULL_POWER
         self.bomb_wait = 0
         # self.bomb_power_text = Text(self, '', 700, 20)
-        self.bomb_power_text = StatusWithText(self, 700, 20, 'Power: %d', BOMB_FULL_POWER)
+        self.bomb_power = StatusWithText(self, 700, 20, 'Power: %d', BOMB_FULL_POWER)
         # self.update_bomb_power_text()
 
         self.elements.append(self.ship)
@@ -66,12 +66,7 @@ class SpaceGame(GameApp):
         if self.bomb_power.value == BOMB_FULL_POWER:
             self.bomb_power.value = 0
 
-            self.bomb_canvas_id = self.canvas.create_oval(
-                self.ship.x - BOMB_RADIUS, 
-                self.ship.y - BOMB_RADIUS,
-                self.ship.x + BOMB_RADIUS, 
-                self.ship.y + BOMB_RADIUS
-            )
+            self.bomb_canvas_id = self.create_bomb()
 
             self.after(200, lambda: self.canvas.delete(self.bomb_canvas_id))
 
@@ -83,6 +78,14 @@ class SpaceGame(GameApp):
 
             self.update_bomb_power_text()
     
+    def create_bomb(self):
+        self.canvas.create_oval(
+            self.ship.x - BOMB_RADIUS, 
+            self.ship.y - BOMB_RADIUS,
+            self.ship.x + BOMB_RADIUS, 
+            self.ship.y + BOMB_RADIUS
+        )
+
     def destroy_enemie(self, enemie_amount):
         if enemie_amount == 0:
             return
@@ -107,13 +110,14 @@ class SpaceGame(GameApp):
 
             self.score_wait = 0
             # self.update_score_text()
+        self.level.value = self.score.value//10 + 1
 
     def update_bomb_power(self):
         self.bomb_wait += 1
-        if (self.bomb_wait >= BOMB_WAIT) and (self.bomb_power != BOMB_FULL_POWER):
-            self.bomb_power += 1
+        if (self.bomb_wait >= BOMB_WAIT) and (self.bomb_power.value != BOMB_FULL_POWER):
+            self.bomb_power.value += 1
             self.bomb_wait = 0
-            self.update_bomb_power_text()
+            # self.update_bomb_power_text()
 
     def create_enemy_star(self):
         enemies = []
@@ -173,11 +177,13 @@ class SpaceGame(GameApp):
         for e in self.enemies:
             if self.ship.is_colliding_with_enemy(e):
                 self.stop_animation()
+                self.end_game()
+                self.init_game()
 
     def process_collisions(self):
         self.process_bullet_enemy_collisions()
         # -- comment out this line to prevent ship collision
-        # self.process_ship_enemy_collision()
+        self.process_ship_enemy_collision()
 
     def update_and_filter_deleted(self, elements):
         new_list = []
@@ -214,6 +220,21 @@ class SpaceGame(GameApp):
     #         self.ship.stop_turn('LEFT')
     #     elif event.keysym == 'Right':
     #         self.ship.stop_turn('RIGHT')
+
+    def end_game(self):
+        for enemie in self.enemies:
+            enemie.to_be_deleted = True
+        self.enemies.clear()
+        for b in self.bullets:
+            b.to_be_deleted = True
+        self.bullets.clear()
+        for e in self.elements:
+            e.to_be_deleted = True
+        self.elements.clear()
+        self.level.to_be_deleted = True
+        self.score.to_be_deleted = True
+        self.bomb_power.to_be_deleted = True
+        
 
 
 class EnemyGenerationStrategy(ABC):

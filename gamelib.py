@@ -168,6 +168,9 @@ class GameApp(ttk.Frame):
 
     def on_key_released(self, event):
         self.key_released_handler.handle(event)
+    
+    def end_game(self):
+        pass
 
 
 class KeyboardHandler:

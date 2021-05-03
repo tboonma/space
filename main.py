@@ -328,6 +328,7 @@ class StatusWithText:
     def value(self):
         return self._value
 
+
     @value.setter
     def value(self, v):
         self._value = v
